@@ -1,42 +1,44 @@
 const express = require('express');
-const oracledb = require('oracledb');
+const mysql = require('mysql2/promise'); // Utilizando mysql2 com suporte a Promises
 const app = express();
 
 app.use(express.json());
 
+// Configuração da conexão com o MySQL
 const config = {
-  user: 'admin',                // Substitua com seu usuário do banco de dados
-  password: 'Wonderware1.',              // Substitua com sua senha do banco de dados
-  connectString: 'testedb.c7qus2seaozi.us-east-1.rds.amazonaws.com:1521/ORCL'  // Certifique-se de que 'ORCL' está correto
+  host: 'mysqldb.c7qus2seaozi.us-east-1.rds.amazonaws.com',   // Substitua pela localização do seu servidor MySQL
+  user: 'admin',                // Substitua pelo usuário do MySQL
+  password: 'Wonderware1.',              // Substitua pela senha do MySQL
+  database: 'CarsDB'         // Substitua pelo nome do banco de dados
 };
 
-// Helper function to execute queries
-async function executeQuery(query, binds = [], options = {}) {
+// Função auxiliar para executar consultas
+async function executeQuery(query, params = []) {
   let connection;
   try {
-    connection = await oracledb.getConnection(config);
-    const result = await connection.execute(query, binds, options);
-    return result;
+    connection = await mysql.createConnection(config);
+    const [results, ] = await connection.execute(query, params);
+    return results;
   } catch (err) {
     console.error('Erro ao executar a consulta:', err.message);
     throw err;
   } finally {
     if (connection) {
-      await connection.close();
+      await connection.end();
     }
   }
 }
 
 // Endpoint para obter todos os carros
-app.get('/ORCL', async (req, res) => {
+app.get('/Cars', async (req, res) => { // Você pode querer renomear este endpoint
   try {
     console.log('Consultando todos os carros...');
-    const result = await executeQuery('SELECT * FROM CarsDB');  // Atualize o nome da tabela para 'CarsDB'
-    console.log('Resultado da consulta:', result.rows);
+    const result = await executeQuery('SELECT * FROM CarsDB.CarsTable');  // Atualize o nome da tabela se necessário
+    console.log('Resultado da consulta:', result);
     res.status(200).json({
       status: 'success',
       data: {
-        cars: result.rows
+        cars: result
       }
     });
   } catch (err) {
@@ -52,4 +54,6 @@ const port = 8080;
 app.listen(port, () => {
   console.log('Servidor iniciado na porta', port);
 });
+
+
 
