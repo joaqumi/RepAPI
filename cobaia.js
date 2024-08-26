@@ -51,9 +51,10 @@ app.get('/Cars', async (req, res) => { // Você pode querer renomear este endpoi
 });
 
 const port = 8080;
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log('Servidor iniciado na porta', port);
 });
+
 
 
 
